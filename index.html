@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ניהול תקציב חכם</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Rubik & Roboto Mono Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #0B132B;
+            color: #F8FAFC;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .mono-num {
+            font-family: 'Roboto Mono', monospace;
+            direction: ltr;
+            display: inline-block;
+        }
+        /* Glassmorphism Effect */
+        .glass-card {
+            background: linear-gradient(135deg, rgba(28, 37, 65, 0.9) 0%, rgba(11, 19, 43, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(58, 80, 107, 0.6);
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 px-3 pt-3 max-w-md mx-auto select-none">
+
+    <!-- 1. כותרת ומחזור -->
+    <div class="flex justify-between items-center mb-3 text-xs text-slate-400 font-medium">
+        <span>📅 מחזור פעיל:</span>
+        <span class="bg-[#1C2541] px-2.5 py-1 rounded-full border border-[#3A506B] text-slate-200">10/10/2026 - 09/11/2026</span>
+    </div>
+
+    <!-- 2. Hero Card - יתרה פנויה -->
+    <div class="glass-card rounded-2xl p-5 text-center mb-4 shadow-xl relative overflow-hidden">
+        <div class="text-xs text-slate-400 font-medium mb-1">יתרה פנויה להוצאות</div>
+        <div class="text-4xl font-bold text-[#48CAE4] mono-num mb-4 tracking-tight">₪10,993.60</div>
+        
+        <div class="grid grid-cols-4 gap-1 pt-3 border-t border-[#3A506B]/50 text-[11px]">
+            <div>
+                <span class="text-slate-400 block text-[10px]">הכנסה</span>
+                <span class="font-bold text-slate-100 mono-num mt-0.5">₪17,750</span>
+            </div>
+            <div>
+                <span class="text-slate-400 block text-[10px]">משתנות</span>
+                <span class="font-bold text-slate-100 mono-num mt-0.5">₪218</span>
+            </div>
+            <div>
+                <span class="text-slate-400 block text-[10px]">קבועות</span>
+                <span class="font-bold text-slate-100 mono-num mt-0.5">₪140</span>
+            </div>
+            <div>
+                <span class="text-slate-400 block text-[10px]">בקנה</span>
+                <span class="font-bold text-[#E0A96D] mono-num mt-0.5">₪6,399</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. הוספת עסקה מהירה -->
+    <button onclick="toggleAddModal()" class="w-full bg-[#1C2541] hover:bg-[#23304E] border border-[#3A506B] text-slate-300 py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 mb-5 transition active:scale-[0.98]">
+        <span>➕</span>
+        <span>רישום עסקה חדשה למחזור</span>
+    </button>
+
+    <!-- 4. ציר זמן תזרימי (Ledger) -->
+    <div class="flex items-center justify-between mb-3 px-1">
+        <h2 class="text-sm font-bold text-slate-200">תזרימי מחזור (לפי תאריך)</h2>
+        <span class="text-[10px] text-slate-400">לחץ על חיוב לעדכון</span>
+    </div>
+
+    <div id="ledgerContainer" class="space-y-2.5">
+        <!-- נטען דינמית ב-JS -->
+    </div>
+
+    <!-- 5. Modal - עדכון חיוב ממתין -->
+    <div id="editModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+        <div class="bg-[#1C2541] border border-[#3A506B] w-full max-w-md rounded-t-2xl sm:rounded-2xl p-5 shadow-2xl animate-in slide-in-from-bottom duration-200">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalTitle" class="font-bold text-base text-slate-100">עדכון חיוב</h3>
+                <button onclick="closeEditModal()" class="text-slate-400 text-lg p-1">✕</button>
+            </div>
+            <p id="modalSub" class="text-xs text-slate-400 mb-4"></p>
+            
+            <label class="block text-xs text-slate-300 mb-1 font-medium">סכום בפועל (₪):</label>
+            <input type="number" id="modalInput" class="w-full bg-[#0B132B] border border-[#3A506B] rounded-xl p-3 text-lg font-bold text-[#48CAE4] mono-num mb-5 focus:outline-none focus:border-[#48CAE4]">
+            
+            <div class="flex gap-2">
+                <button onclick="saveExpenseUpdate()" class="flex-1 bg-[#48CAE4] hover:bg-[#3dbbd6] text-[#0B132B] py-3 rounded-xl font-bold text-sm transition active:scale-[0.98]">אישור וסימון כבוצע</button>
+                <button onclick="closeEditModal()" class="bg-[#3A506B]/50 hover:bg-[#3A506B] text-slate-300 px-4 py-3 rounded-xl font-semibold text-sm">ביטול</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript - הלוגיקה והאינטראקציה -->
+    <script>
+        // נתוני הדגמה (אפשר לחבר ל-Google Sheets API / Apps Script)
+        let transactions = [
+            { id: 1, name: "שכירות / משכנתא", cat: "דיור", amount: 4500, date: "25/10/2026", status: "pending" },
+            { id: 2, name: "סולמייט", cat: "חיות מחמד", amount: 857, date: "28/10/2026", status: "pending" },
+            { id: 3, name: "עיריית בני ברק", cat: "מיסים", amount: 541.6, date: "01/11/2026", status: "pending" },
+            { id: 4, name: "חברת החשמל", cat: "תשתיות", amount: 350, date: "01/11/2026", status: "pending" },
+            { id: 5, name: "אינטרנט וטלפון", cat: "תקשורת", amount: 150, date: "05/11/2026", status: "pending" },
+            { id: 6, name: "WOLT", cat: "מסעדות ובתי קפה", amount: 143, date: "09/10/2026", status: "done" },
+            { id: 7, name: "GOOGLE SMART FUN", cat: "דיגיטל", amount: 30, date: "09/10/2026", status: "done" },
+            { id: 8, name: "מאפה נאמן בני ברק", cat: "מזון", amount: 25, date: "08/10/2026", status: "done" }
+        ];
+
+        let activeEditId = null;
+
+        function renderLedger() {
+            const container = document.getElementById('ledgerContainer');
+            container.innerHTML = '';
+
+            transactions.forEach(item => {
+                const isPending = item.status === 'pending';
+                const borderClass = isPending ? 'border-r-4 border-r-[#E0A96D]' : 'border-r-4 border-r-[#4ADE80]';
+                const statusBadge = isPending 
+                    ? `<span class="text-[10px] text-[#E0A96D] bg-[#E0A96D]/10 px-2 py-0.5 rounded-full font-medium">ממתין</span>`
+                    : `<span class="text-[10px] text-[#4ADE80] bg-[#4ADE80]/10 px-2 py-0.5 rounded-full font-medium">בוצע</span>`;
+                
+                const card = document.createElement('div');
+                card.className = `bg-[#1C2541] border border-[#3A506B]/70 ${borderClass} rounded-xl p-3.5 flex justify-between items-center cursor-pointer hover:border-slate-400 transition active:scale-[0.99]`;
+                
+                // בלחיצה על כל השטח של הכרטיסייה
+                card.onclick = () => {
+                    if (isPending) {
+                        openEditModal(item);
+                    }
+                };
+
+                card.innerHTML = `
+                    <div class="space-y-0.5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] text-slate-400 font-medium">${item.date}</span>
+                            ${statusBadge}
+                        </div>
+                        <div class="font-semibold text-sm text-slate-100">${item.name}</div>
+                        <div class="text-[11px] text-slate-400">${item.cat}</div>
+                    </div>
+                    <div class="text-left">
+                        <div class="font-bold text-sm mono-num ${isPending ? 'text-[#E0A96D]' : 'text-slate-100'}">₪${item.amount.toLocaleString('he-IL', {minimumFractionDigits: 1})}</div>
+                        ${isPending ? `<span class="text-[10px] text-[#48CAE4] block mt-1 underline">עדכן</span>` : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function openEditModal(item) {
+            activeEditId = item.id;
+            document.getElementById('modalTitle').innerText = `עדכון: ${item.name}`;
+            document.getElementById('modalSub').innerText = `קטגוריה: ${item.cat} | תאריך צפוי: ${item.date}`;
+            document.getElementById('modalInput').value = item.amount;
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+            activeEditId = null;
+        }
+
+        function saveExpenseUpdate() {
+            const val = parseFloat(document.getElementById('modalInput').value);
+            if (!isNaN(val) && activeEditId) {
+                const item = transactions.find(t => t.id === activeEditId);
+                if (item) {
+                    item.amount = val;
+                    item.status = 'done';
+                }
+                closeEditModal();
+                renderLedger();
+            }
+        }
+
+        // טעינה ראשונית
+        renderLedger();
+    </script>
+</body>
+</html>
