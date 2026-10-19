@@ -6,7 +6,7 @@
     <title>ניהול תקציב חכם - PWA</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js לגרפים מודרניים -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Rubik & Roboto Mono Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -43,24 +43,24 @@
     <!-- 2. Hero Card - יתרה פנויה -->
     <div class="glass-card rounded-2xl p-5 text-center mb-3 shadow-xl relative overflow-hidden">
         <div class="text-xs text-slate-400 font-medium mb-1">יתרה פנויה להוצאות משתנות</div>
-        <div class="text-4xl font-bold text-[#48CAE4] mono-num mb-4 tracking-tight">₪10,993.60</div>
+        <div id="heroAvailable" class="text-4xl font-bold text-[#48CAE4] mono-num mb-4 tracking-tight">₪0.00</div>
         
         <div class="grid grid-cols-4 gap-1 pt-3 border-t border-[#3A506B]/50 text-[11px]">
             <div>
                 <span class="text-slate-400 block text-[10px]">הכנסה</span>
-                <span class="font-bold text-slate-100 mono-num mt-0.5">₪17,750</span>
+                <span id="heroIncome" class="font-bold text-slate-100 mono-num mt-0.5">₪17,750</span>
             </div>
             <div>
                 <span class="text-slate-400 block text-[10px]">משתנות</span>
-                <span class="font-bold text-slate-100 mono-num mt-0.5">₪218</span>
+                <span id="heroVariable" class="font-bold text-slate-100 mono-num mt-0.5">₪0</span>
             </div>
             <div>
                 <span class="text-slate-400 block text-[10px]">קבועות</span>
-                <span class="font-bold text-slate-100 mono-num mt-0.5">₪140</span>
+                <span id="heroFixedDone" class="font-bold text-slate-100 mono-num mt-0.5">₪0</span>
             </div>
             <div>
                 <span class="text-slate-400 block text-[10px]">בקנה</span>
-                <span class="font-bold text-[#E0A96D] mono-num mt-0.5">₪6,399</span>
+                <span id="heroPending" class="font-bold text-[#E0A96D] mono-num mt-0.5">₪0</span>
             </div>
         </div>
     </div>
@@ -71,42 +71,94 @@
             <span class="font-semibold text-slate-200">קצב ניצול תקציב משתנה</span>
             <span class="text-[#4ADE80] font-bold text-[11px]">קצב מצוין (יום 10 מתוך 31)</span>
         </div>
-        <!-- Progress Bar -->
         <div class="w-full bg-[#0B132B] h-2.5 rounded-full overflow-hidden p-0.5 border border-[#3A506B]">
             <div class="bg-gradient-to-r from-[#48CAE4] to-[#4ADE80] h-full rounded-full" style="width: 18%;"></div>
         </div>
         <div class="flex justify-between text-[10px] text-slate-400 mt-1.5 mono-num">
-            <span>ניצול: ₪218 (2%)</span>
+            <span>ניצול: ₪198 (2%)</span>
             <span>מומלץ ליום: ~₪350</span>
         </div>
     </div>
 
-    <!-- 4. גרף פילוח קטגוריות & היסטוריה (Tabs) -->
+    <!-- 4. גרף פילוח קטגוריות בשקלים & היסטוריה -->
     <div class="glass-card rounded-2xl p-4 mb-4">
         <div class="flex border-b border-[#3A506B] mb-3 text-xs">
-            <button onclick="switchChart('categories')" id="tabCat" class="pb-2 px-3 font-bold text-[#48CAE4] border-b-2 border-[#48CAE4]">פילוח קטגוריות</button>
+            <button onclick="switchChart('categories')" id="tabCat" class="pb-2 px-3 font-bold text-[#48CAE4] border-b-2 border-[#48CAE4]">פילוח קטגוריות (₪)</button>
             <button onclick="switchChart('history')" id="tabHist" class="pb-2 px-3 font-medium text-slate-400">היסטוריית מחזורים</button>
         </div>
 
-        <!-- Chart Container -->
         <div class="relative h-44">
             <canvas id="mainChart"></canvas>
         </div>
     </div>
 
-    <!-- 5. תזרימי מחזור (Ledger) -->
+    <!-- 5. כותרת ותזרימי מחזור (Ledger) -->
     <div class="flex items-center justify-between mb-2.5 px-1">
         <h2 class="text-sm font-bold text-slate-200">תזרימי מחזור (לפי תאריך)</h2>
-        <span class="text-[10px] text-slate-400">מבוסס קובץ אקסל</span>
+        <button onclick="openAddModal()" class="bg-[#3A506B]/60 hover:bg-[#3A506B] text-[#48CAE4] text-xs px-2.5 py-1 rounded-lg border border-[#3A506B] font-semibold transition active:scale-95">
+            + צפויה חדשה
+        </button>
     </div>
 
-    <div id="ledgerContainer" class="space-y-2">
+    <div id="ledgerContainer" class="space-y-2 mb-4">
         <!-- נטען דינמית ב-JS -->
     </div>
 
+    <!-- 6. Modal - הוספה / עריכה של הוצאה צפויה -->
+    <div id="expenseModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-[#1C2541] border border-[#3A506B] w-full max-w-md rounded-t-2xl sm:rounded-2xl p-5 shadow-2xl animate-in slide-in-from-bottom duration-200">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalTitle" class="font-bold text-base text-slate-100">הוספת הוצאה צפויה</h3>
+                <button onclick="closeModal()" class="text-slate-400 text-lg p-1">✕</button>
+            </div>
+            
+            <div class="space-y-3 mb-5">
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">שם ההוצאה / העסק:</label>
+                    <input type="text" id="inputName" class="w-full bg-[#0B132B] border border-[#3A506B] rounded-xl p-2.5 text-sm text-slate-100 focus:outline-none focus:border-[#48CAE4]">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">סכום צפוי (₪):</label>
+                    <input type="number" id="inputAmount" class="w-full bg-[#0B132B] border border-[#3A506B] rounded-xl p-2.5 text-base font-bold text-[#48CAE4] mono-num focus:outline-none focus:border-[#48CAE4]">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">תאריך צפוי:</label>
+                        <input type="text" id="inputDate" placeholder="DD/MM/YYYY" class="w-full bg-[#0B132B] border border-[#3A506B] rounded-xl p-2.5 text-xs text-slate-100 focus:outline-none focus:border-[#48CAE4]">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">קטגוריה:</label>
+                        <select id="inputCat" class="w-full bg-[#0B132B] border border-[#3A506B] rounded-xl p-2.5 text-xs text-slate-100 focus:outline-none focus:border-[#48CAE4]">
+                            <option value="דיור">דיור</option>
+                            <option value="תשתיות">תשתיות</option>
+                            <option value="חיות מחמד">חיות מחמד</option>
+                            <option value="מיסים">מיסים</option>
+                            <option value="תקשורת">תקשורת</option>
+                            <option value="מסעדות">מסעדות</option>
+                            <option value="מזון">מזון</option>
+                            <option value="דיגיטל">דיגיטל</option>
+                            <option value="שונות">שונות</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-2">
+                <button onclick="saveExpense()" class="flex-1 bg-[#48CAE4] hover:bg-[#3dbbd6] text-[#0B132B] py-3 rounded-xl font-bold text-sm transition active:scale-[0.98]">שמירה ועדכון</button>
+                <button onclick="closeModal()" class="bg-[#3A506B]/50 hover:bg-[#3A506B] text-slate-300 px-4 py-3 rounded-xl font-semibold text-sm">ביטול</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript - לוגיקה וגרפים -->
     <script>
-        // נתוני הלדג'ר (מסונכרנים מ-Google Sheets)
-        const transactions = [
+        const income = 17750;
+        let activeEditId = null;
+        let chartInstance = null;
+        let currentChartType = 'categories';
+
+        // נתוני העסקאות
+        let transactions = [
             { id: 1, name: "שכירות / משכנתא", cat: "דיור", amount: 4500, date: "25/10/2026", status: "pending" },
             { id: 2, name: "סולמייט", cat: "חיות מחמד", amount: 857, date: "28/10/2026", status: "pending" },
             { id: 3, name: "עיריית בני ברק", cat: "מיסים", amount: 541.6, date: "01/11/2026", status: "pending" },
@@ -117,51 +169,56 @@
             { id: 8, name: "מאפה נאמן בני ברק", cat: "מזון", amount: 25, date: "08/10/2026", status: "done" }
         ];
 
-        function renderLedger() {
-            const container = document.getElementById('ledgerContainer');
-            container.innerHTML = '';
+        function recalculateHero() {
+            let pendingTotal = 0;
+            let variableTotal = 0;
 
             transactions.forEach(item => {
-                const isPending = item.status === 'pending';
-                const borderClass = isPending ? 'border-r-4 border-r-[#E0A96D]' : 'border-r-4 border-r-[#4ADE80]';
-                const statusBadge = isPending 
-                    ? `<span class="text-[10px] text-[#E0A96D] bg-[#E0A96D]/10 px-2 py-0.5 rounded-full font-medium">בקנה</span>`
-                    : `<span class="text-[10px] text-[#4ADE80] bg-[#4ADE80]/10 px-2 py-0.5 rounded-full font-medium">ירד בבנק</span>`;
-                
-                const card = document.createElement('div');
-                card.className = `bg-[#1C2541] border border-[#3A506B]/70 ${borderClass} rounded-xl p-3 flex justify-between items-center`;
-                
-                card.innerHTML = `
-                    <div class="space-y-0.5">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[11px] text-slate-400 font-medium">${item.date}</span>
-                            ${statusBadge}
-                        </div>
-                        <div class="font-semibold text-sm text-slate-100">${item.name}</div>
-                        <div class="text-[11px] text-slate-400">${item.cat}</div>
-                    </div>
-                    <div class="text-left">
-                        <div class="font-bold text-sm mono-num ${isPending ? 'text-[#E0A96D]' : 'text-slate-100'}">₪${item.amount.toLocaleString('he-IL', {minimumFractionDigits: 1})}</div>
-                    </div>
-                `;
-                container.appendChild(card);
+                if (item.status === 'pending') {
+                    pendingTotal += item.amount;
+                } else if (item.status === 'done') {
+                    variableTotal += item.amount;
+                }
             });
+
+            const available = income - (pendingTotal + variableTotal);
+
+            document.getElementById('heroAvailable').innerText = `₪${available.toLocaleString('he-IL', {minimumFractionDigits: 2})}`;
+            document.getElementById('heroVariable').innerText = `₪${variableTotal.toLocaleString('he-IL')}`;
+            document.getElementById('heroPending').innerText = `₪${pendingTotal.toLocaleString('he-IL')}`;
         }
 
-        // הגדרת הגרפים עם Chart.js
-        let chartInstance = null;
+        function calculateCategoryTotals() {
+            const totals = {};
+            transactions.forEach(item => {
+                if (item.status === 'done') {
+                    const cat = item.cat || 'שונות';
+                    totals[cat] = (totals[cat] || 0) + item.amount;
+                }
+            });
+            return totals;
+        }
 
         function initCategoryChart() {
             const ctx = document.getElementById('mainChart').getContext('2d');
             if (chartInstance) chartInstance.destroy();
 
+            const catTotals = calculateCategoryTotals();
+            const labels = Object.keys(catTotals);
+            const dataValues = Object.values(catTotals);
+
+            if (labels.length === 0) {
+                labels.push('אין עסקאות עדיין');
+                dataValues.push(1);
+            }
+
             chartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['מזון וסופר', 'מסעדות ו-Wolt', 'דיגיטל ופנאי', 'שונות'],
+                    labels: labels,
                     datasets: [{
-                        data: [45, 30, 15, 10],
-                        backgroundColor: ['#48CAE4', '#E0A96D', '#4ADE80', '#64748B'],
+                        data: dataValues,
+                        backgroundColor: ['#48CAE4', '#E0A96D', '#4ADE80', '#F43F5E', '#A855F7', '#64748B'],
                         borderWidth: 0
                     }]
                 },
@@ -169,7 +226,32 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'right', labels: { color: '#F8FAFC', font: { family: 'Rubik', size: 10 } } }
+                        legend: { 
+                            position: 'right', 
+                            labels: { 
+                                color: '#F8FAFC', 
+                                font: { family: 'Rubik', size: 10 },
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    return data.labels.map((label, i) => {
+                                        const val = data.datasets[0].data[i];
+                                        return {
+                                            text: `${label}: ₪${val.toLocaleString('he-IL')}`,
+                                            fillStyle: data.datasets[0].backgroundColor[i],
+                                            hidden: false,
+                                            index: i
+                                        };
+                                    });
+                                }
+                            } 
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ₪${context.raw.toLocaleString('he-IL')}`;
+                                }
+                            }
+                        }
                     },
                     cutout: '70%'
                 }
@@ -204,6 +286,7 @@
         }
 
         function switchChart(type) {
+            currentChartType = type;
             if (type === 'categories') {
                 document.getElementById('tabCat').className = 'pb-2 px-3 font-bold text-[#48CAE4] border-b-2 border-[#48CAE4]';
                 document.getElementById('tabHist').className = 'pb-2 px-3 font-medium text-slate-400';
@@ -213,6 +296,100 @@
                 document.getElementById('tabCat').className = 'pb-2 px-3 font-medium text-slate-400';
                 initHistoryChart();
             }
+        }
+
+        function renderLedger() {
+            const container = document.getElementById('ledgerContainer');
+            container.innerHTML = '';
+
+            transactions.forEach(item => {
+                const isPending = item.status === 'pending';
+                const borderClass = isPending ? 'border-r-4 border-r-[#E0A96D]' : 'border-r-4 border-r-[#4ADE80]';
+                const statusBadge = isPending 
+                    ? `<span class="text-[10px] text-[#E0A96D] bg-[#E0A96D]/10 px-2 py-0.5 rounded-full font-medium">בקנה (לחץ לעריכה)</span>`
+                    : `<span class="text-[10px] text-[#4ADE80] bg-[#4ADE80]/10 px-2 py-0.5 rounded-full font-medium">ירד בבנק</span>`;
+                
+                const card = document.createElement('div');
+                card.className = `bg-[#1C2541] border border-[#3A506B]/70 ${borderClass} rounded-xl p-3 flex justify-between items-center ${isPending ? 'cursor-pointer hover:border-slate-400' : ''}`;
+                
+                if (isPending) {
+                    card.onclick = () => openEditModal(item);
+                }
+
+                card.innerHTML = `
+                    <div class="space-y-0.5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] text-slate-400 font-medium">${item.date}</span>
+                            ${statusBadge}
+                        </div>
+                        <div class="font-semibold text-sm text-slate-100">${item.name}</div>
+                        <div class="text-[11px] text-slate-400">${item.cat}</div>
+                    </div>
+                    <div class="text-left">
+                        <div class="font-bold text-sm mono-num ${isPending ? 'text-[#E0A96D]' : 'text-slate-100'}">₪${item.amount.toLocaleString('he-IL', {minimumFractionDigits: 1})}</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            recalculateHero();
+            if (currentChartType === 'categories') {
+                initCategoryChart();
+            }
+        }
+
+        function openAddModal() {
+            activeEditId = null;
+            document.getElementById('modalTitle').innerText = "הוספת הוצאה צפויה חדשה";
+            document.getElementById('inputName').value = "";
+            document.getElementById('inputAmount').value = "";
+            document.getElementById('inputDate').value = new Date().toLocaleDateString('he-IL');
+            document.getElementById('expenseModal').classList.remove('hidden');
+        }
+
+        function openEditModal(item) {
+            activeEditId = item.id;
+            document.getElementById('modalTitle').innerText = `עריכת הוצאה צפויה: ${item.name}`;
+            document.getElementById('inputName').value = item.name;
+            document.getElementById('inputAmount').value = item.amount;
+            document.getElementById('inputDate').value = item.date;
+            document.getElementById('inputCat').value = item.cat || 'שונות';
+            document.getElementById('expenseModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('expenseModal').classList.add('hidden');
+        }
+
+        function saveExpense() {
+            const name = document.getElementById('inputName').value;
+            const amount = parseFloat(document.getElementById('inputAmount').value);
+            const date = document.getElementById('inputDate').value;
+            const cat = document.getElementById('inputCat').value;
+
+            if (!name || isNaN(amount) || amount <= 0) return;
+
+            if (activeEditId) {
+                const item = transactions.find(t => t.id === activeEditId);
+                if (item) {
+                    item.name = name;
+                    item.amount = amount;
+                    item.date = date;
+                    item.cat = cat;
+                }
+            } else {
+                transactions.unshift({
+                    id: Date.now(),
+                    name: name,
+                    cat: cat,
+                    amount: amount,
+                    date: date,
+                    status: 'pending'
+                });
+            }
+
+            closeModal();
+            renderLedger();
         }
 
         // טעינה ראשונית
